@@ -18,7 +18,7 @@ def CATH(
     chain_set_splits_json='chain_set_splits.json',
     split=("train", "validation", "test"),
     truncate=None, max_length=500,
-    alphabet='ACDEFGHIKLMNPQRSTVWY',
+    alphabet="ACDEFGHIKLMNPQRSTVWY", # Will use ESM-2 alphabet by default
     verbose=False
 ):
     alphabet_set = set([a for a in alphabet])

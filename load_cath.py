@@ -17,7 +17,7 @@ class CATHDataModule(LightningDataModule):
         chain_set_splits_json: str = 'chain_set_splits.json',
         max_length: int = 500,
         atoms: List[str] = ('N', 'CA', 'C', 'O'),
-        alphabet=None,
+        alphabet_name: str = 'esm2',
         batch_size: int = 64,
         max_tokens: int = 6000,
         sort: bool = False,
@@ -32,7 +32,7 @@ class CATHDataModule(LightningDataModule):
         # this line allows to access init params with 'self.hparams' attribute
         self.save_hyperparameters(logger=False)
 
-        self.alphabet = None
+        self.alphabet = None # alphabet class
 
         self.train_data: Optional[Dataset] = None
         self.valid_data: Optional[Dataset] = None
@@ -68,7 +68,7 @@ class CATHDataModule(LightningDataModule):
         else:
             raise ValueError(f"Invalid stage: {stage}.")
 
-        self.alphabet = Alphabet(name='protein_mpnn', featurizer='cath')
+        self.alphabet = Alphabet(name=self.hparams.alphabet_name, featurizer='cath')
 
         self.collate_batch = self.alphabet.featurizer
 
@@ -133,6 +133,7 @@ def main():
         chain_set_splits_json="chain_set_splits.json",
         max_length=500,
         atoms=('N', 'CA', 'C', 'O'),
+        alphabet_name='esm2',  # Use ESM-2 vocabulary
         batch_size=32,
         max_tokens=6000,
         sort=True,

@@ -13,6 +13,8 @@ from torch.utils.data import DataChunk
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import BatchSampler, SequentialSampler
 
+from transformers import EsmTokenizer
+
 
 class Alphabet(object):
     def __init__(self, name='esm', featurizer='cath', alphabet_cfg={}, featurizer_cfg={}):
@@ -22,11 +24,22 @@ class Alphabet(object):
         if name == 'esm':
             self._alphabet = esm.Alphabet.from_architecture('ESM-1b')
             self.add_special_tokens = True
+        elif name == 'esm2':
+            # Use ESM-2 vocabulary directly
+            self._alphabet = esm.Alphabet(
+                standard_toks=['L', 'A', 'G', 'V', 'S', 'E', 'R', 'T', 'I', 'D', 'P', 'K', 
+                               'Q', 'N', 'F', 'Y', 'M', 'H', 'W', 'C', 'X', 'B', 'U', 'Z', 'O', '.', '-'],
+                prepend_toks=['<cls>', '<pad>', '<eos>', '<unk>'],
+                append_toks=['<mask>'],
+                prepend_bos=False,
+                append_eos=False
+            )
+            self.add_special_tokens = True
         elif name == 'protein_mpnn':
             self._alphabet = esm.Alphabet(
                 standard_toks=['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
                                'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V'],
-                prepend_toks=["<pad>", "<unk>"],
+                prepend_toks=["<pad>", ""],
                 append_toks=[],
                 prepend_bos=False,
                 append_eos=False
