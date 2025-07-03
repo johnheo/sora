@@ -1,13 +1,19 @@
 from typing import List, Optional
+
 import torch
+from src import utils
+from src.datamodules import register_datamodule
+from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
-from src.datamodules.cath import CATH
-from src.datamodules.data_utils import Alphabet, MaxTokensBatchSampler
+from .cath import CATH
+from .data_utils import Alphabet, MaxTokensBatchSampler
 
-from pytorch_lightning import LightningDataModule
+log = utils.get_logger(__name__)
 
-# @register_datamodule('cath')
+
+# @register_datamodule('struct2seq')
+@register_datamodule('cath')
 class CATHDataModule(LightningDataModule):
 
     def __init__(
@@ -17,7 +23,7 @@ class CATHDataModule(LightningDataModule):
         chain_set_splits_json: str = 'chain_set_splits.json',
         max_length: int = 500,
         atoms: List[str] = ('N', 'CA', 'C', 'O'),
-        alphabet_name: str = 'esm2',
+        alphabet=None,
         batch_size: int = 64,
         max_tokens: int = 6000,
         sort: bool = False,
@@ -32,7 +38,7 @@ class CATHDataModule(LightningDataModule):
         # this line allows to access init params with 'self.hparams' attribute
         self.save_hyperparameters(logger=False)
 
-        self.alphabet = None # alphabet class
+        self.alphabet = None
 
         self.train_data: Optional[Dataset] = None
         self.valid_data: Optional[Dataset] = None
@@ -68,7 +74,7 @@ class CATHDataModule(LightningDataModule):
         else:
             raise ValueError(f"Invalid stage: {stage}.")
 
-        self.alphabet = Alphabet(name=self.hparams.alphabet_name, featurizer='cath')
+        self.alphabet = Alphabet(**self.hparams.alphabet)
 
         self.collate_batch = self.alphabet.featurizer
 
@@ -120,80 +126,3 @@ class CATHDataModule(LightningDataModule):
             pin_memory=self.hparams.pin_memory,
             collate_fn=self.collate_batch
         )
-
-def main():
-    """
-    Main function to demonstrate how to initialize the CATH data module
-    and create a dataloader for training.
-    """
-    # Initialize the CATH data module
-    cath_dm = CATHDataModule(
-        data_dir="data/cath_4.3/",
-        chain_set_jsonl="chain_set.jsonl",
-        chain_set_splits_json="chain_set_splits.json",
-        max_length=500,
-        atoms=('N', 'CA', 'C', 'O'),
-        alphabet_name='esm2',
-        batch_size=32,
-        max_tokens=6000,
-        sort=True,
-        num_workers=4,
-        pin_memory=True,
-        train_split='train',
-        valid_split='valid',
-        test_split='test'
-    )
-    
-    # Setup the data module for training
-    cath_dm.setup(stage='fit')
-    
-    # Get the training dataloader
-    train_dataloader = cath_dm.train_dataloader()
-    val_dataloader = cath_dm.val_dataloader()
-    
-    print(f"Number of training batches: {len(train_dataloader)}")
-    print(f"Number of validation batches: {len(val_dataloader)}")
-    
-    # Example: iterate through a few batches
-    print("\nExample batch iteration:")
-    for i, batch in enumerate(train_dataloader):
-        if i >= 3:  # Only show first 3 batches
-            break
-
-        B, L, _, _ = batch['coords'].shape
-
-        print(f"Batch {i+1}:")
-        print(f"  Batch size (B): {B}")
-        print(f"  Sequence lengths (L): {[len(seq) for seq in batch['seqs']]}")
-        if 'coords' in batch:
-            print(f"  Coordinates shape: {batch['coords'].shape}")
-        print()
-
-if __name__ == "__main__":
-    main()
-
-
-
-"""
-Loaded data size: 22401/22507. Discarded: {'bad_chars': 107, 'too_long': 0}.
-Size. train: 16631, validation: 1516
-Number of training batches: 649
-Number of validation batches: 50
-
-Example batch iteration:
-Batch 1:
-  Batch size (B): 48
-  Sequence lengths (L): [124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125, 125]
-  Coordinates shape: torch.Size([48, 125, 4, 3])
-
-Batch 2:
-  Batch size (B): 57
-  Sequence lengths (L): [105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 105, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106, 106]
-  Coordinates shape: torch.Size([57, 106, 4, 3])
-
-Batch 3:
-  Batch size (B): 25
-  Sequence lengths (L): [231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231, 231]
-  Coordinates shape: torch.Size([25, 231, 4, 3])
-
-"""

@@ -8,7 +8,7 @@ from torch.nn import functional as F
 from torch.utils.data.datapipes.map import SequenceWrapper
 from torch.utils.data.dataset import Subset
 
-from data_utils import Alphabet
+from src.datamodules.data_utils import Alphabet
 
 import esm
 
@@ -18,7 +18,7 @@ def CATH(
     chain_set_splits_json='chain_set_splits.json',
     split=("train", "validation", "test"),
     truncate=None, max_length=500,
-    alphabet="ACDEFGHIKLMNPQRSTVWY", # Will use ESM-2 alphabet by default
+    alphabet="ACDEFGHIKLMNPQRSTVWY", # for filtering only
     verbose=False
 ):
     alphabet_set = set([a for a in alphabet])

@@ -39,7 +39,7 @@ class Alphabet(object):
             self._alphabet = esm.Alphabet(
                 standard_toks=['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I',
                                'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V'],
-                prepend_toks=["<pad>", ""],
+                prepend_toks=["<pad>", "<unk>"],
                 append_toks=[],
                 prepend_bos=False,
                 append_eos=False
@@ -61,7 +61,7 @@ class Alphabet(object):
         return len(self._alphabet)
 
     def get_featurizer(self, name='cath', **kwds):
-        from cath import Featurizer
+        from src.datamodules.cath import Featurizer
         return Featurizer(alphabet=self, 
                             to_pifold_format=kwds.get('to_pifold_format', False),
                             coord_nan_to_zero=kwds.get('coord_nan_to_zero', True))
