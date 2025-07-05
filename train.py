@@ -12,6 +12,9 @@ import pyrootutils
 
 from src import utils
 
+import torch
+torch.set_float32_matmul_precision('medium')  # or 'high'
+
 # ------------------------------------------------------------------------------------ #
 # `pyrootutils.setup_root(...)` is recommended at the top of each start file
 # to make the environment more robust and consistent
@@ -82,7 +85,8 @@ def train(config: DictConfig) -> Optional[float]:
     #     config.trainer, callbacks=callbacks, logger=logger, _convert_="partial"
     # )
     trainer: Trainer = hydra.utils.instantiate(
-        config.trainer, callbacks=[], logger=logger, _convert_="partial", enable_model_summary=False
+        config.trainer, callbacks=[], logger=logger, _convert_="partial", 
+        enable_model_summary=False, precision='16-mixed'
     )
     # Send some parameters from config to all lightning loggers
     log.info("Logging hyperparameters!")

@@ -252,9 +252,9 @@ class CMLM(TaskLitModule):
         
         eval_ppl = torch.exp(eval_nll_loss)
         # 2. log them
-        self.log(f"{log_key}/loss",     eval_loss,     prog_bar=True)
-        self.log(f"{log_key}/nll_loss", eval_nll_loss, prog_bar=True)
-        self.log(f"{log_key}/ppl",      eval_ppl,      prog_bar=True)
+        self.log(f"{log_key}/loss", eval_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log(f"{log_key}/nll_loss", eval_nll_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log(f"{log_key}/ppl", eval_ppl, on_step=False, on_epoch=True, prog_bar=True)
 
         if self.stage == 'fit':
             self.val_ppl_best.update(eval_ppl)
